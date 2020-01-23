@@ -23,21 +23,19 @@ public class TestHugeInteger {
             System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
             constr = new HugeInteger("-54321");
             System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
-            constr = new HugeInteger("123456789123456789123456789123456789");
-            System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
             constr = new HugeInteger("0003");
+            System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
+            constr = new HugeInteger("123456789123456789123456789123456789");
             System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
             constr = new HugeInteger("0");
             System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
             constr = new HugeInteger("00000");
             System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
-//            constr = new HugeInteger("123-88");
-//            System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
 //            constr = new HugeInteger("");
 //            System.out.println("constructor 1: " + constr.toString() + "\tsize: " + constr.size);
-//            constr = new HugeInteger(1);
-//            System.out.println("constructor 2: " + constr.toString() + "\tsize: " + constr.size);
-//            constr = new HugeInteger(-1);
+            constr = new HugeInteger(1);
+            System.out.println("constructor 2: " + constr.toString() + "\tsize: " + constr.size);
+//            constr = new HugeInteger(0);
 //            System.out.println("constructor 2: " + constr.toString() + "\tsize: " + constr.size);
 //            constr = new HugeInteger(-1);
 //            System.out.println("constructor 2: " + constr.toString() + "\tsize: " + constr.size);
@@ -57,7 +55,7 @@ public class TestHugeInteger {
 //        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
 //        comp1 = new HugeInteger("123");
 //        comp2 = new HugeInteger("-123");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\tout put: "+comp1.compareTo(comp2));
+//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
 //        comp1 = new HugeInteger("1234");
 //        comp2 = new HugeInteger("123");
 //        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
@@ -96,12 +94,12 @@ public class TestHugeInteger {
             add2 = new HugeInteger("0");
             sum = add1.add(add2);
             System.out.println(add1.toString() + "+" + add2.toString() + "=" + sum.toString());
-            add1 = new HugeInteger("111");
-            add2 = new HugeInteger("999999999999999999999999999999999999");
+            add1 = new HugeInteger("123456789");
+            add2 = new HugeInteger("987654321s");
             sum = add1.add(add2);
             System.out.println(add1.toString() + "+" + add2.toString() + "=" + sum.toString());
             add1 = new HugeInteger("-123456789");
-            add2 = new HugeInteger("-987654321");
+            add2 = new HugeInteger("-987654321s");
             sum = add1.add(add2);
             System.out.println(add1.toString() + "+" + add2.toString() + "=" + sum.toString());
             System.out.println("</END ADD TEST>\n");
@@ -127,6 +125,5 @@ public class TestHugeInteger {
 //        difference = subtract1.subtract(subtract2);
 //        System.out.println(subtract1.toString() + "-" + subtract2.toString() + "=" + difference.toString());
 //        System.out.println("</END SUBTRACTION TEST>\n");
-
     }
 }
