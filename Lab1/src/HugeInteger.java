@@ -65,12 +65,13 @@ public class HugeInteger {
         } else if(this.neg && !h.neg) {
             result = h.subtract(this);
         } else {
+            
             if(this.neg && h.neg)   result.neg = true;
             else                    result.neg = false;
             
+            /* A + B = C */
             Node currentA = this.head;
             Node currentB = h.head;
-            result.size = 0;
             int sum = 0;
             int carry = 0;
             
@@ -130,6 +131,9 @@ public class HugeInteger {
     
     public HugeInteger subtract(HugeInteger h) {
         
+        int comparison = this.compareTo(h);
+        if(comparison == 0) return new HugeInteger("0");
+        
         HugeInteger result = new HugeInteger();
         
         if(!this.neg && h.neg) {    // this = 1000, h = -100, result = 1100
@@ -140,6 +144,54 @@ public class HugeInteger {
             h.neg = true;
             result = this.add(h);
             h.neg = false;
+        } else if(this.neg && h.neg) {      // this = -1000, h = -100, result = abs(h) - this = 
+            h.neg = false;
+            result = h.subtract(this);
+            h.neg = true;
+        } else if(comparison == -1) {       // this = 10, h = 100, result = -(h - this) = -90
+            h.neg = false;
+            result = h.subtract(this);
+            h.neg = true;
+            result.neg = true;
+        } else if(!this.neg && !h.neg) {
+            
+            /* A - B = result, A + C = 1result (there will always be a leading 1) */
+            Node currentA = this.head;
+            Node currentB = h.head;
+            
+            /* initialize the complement and head of it */
+            HugeInteger complement = new HugeInteger();     // to store 10's complement
+            complement.head = new Node(9 - currentB.value);
+            Node currentC = complement.head;
+            Node previous;
+            currentB = currentB.next;
+            
+            while(currentB != null) {
+                previous = currentC;
+                currentC.next = new Node(9 - currentB.value);
+                System.out.println("test: " + currentC.value);
+                currentC = currentC.next;
+                currentC.prev = previous;
+                currentB = currentB.next;
+            }
+            
+            Node current;
+            current = complement.head;
+            while(current != null) {
+                System.out.print(current.value);
+                current = current.next;
+            }
+            System.out.println();
+            current = complement.tail;
+            while(current != null) {
+                System.out.print(current.value);
+                current = current.prev;
+            }
+            System.out.println("\n");
+            
+            result = new HugeInteger(10);
+            //result = this.add(complement);
+            result.neg = false;
         }
         
         return result;
@@ -179,80 +231,5 @@ public class HugeInteger {
         }
         if(neg) output = "-" + output;
         return output;
-    }
-    
-    public static void main(String[] args) {
-        
-//        HugeInteger test = new HugeInteger(5);
-//        Node current;
-//        current = test.head;
-//        while(current != null) {
-//            System.out.print(current.value);
-//            current = current.next;
-//        }
-//        System.out.println();
-//        current = test.tail;
-//        while(current != null) {
-//            System.out.print(current.value);
-//            current = current.prev;
-//        }
-//        System.out.println();
-        
-//        System.out.println("<BEGIN CONSTRUCTOR TEST/>");
-//        HugeInteger const1 = new HugeInteger("54321");
-//        System.out.println(const1.toString());
-//        HugeInteger const2 = new HugeInteger("-54321");
-//        System.out.println(const2.toString());
-//        HugeInteger const3 = new HugeInteger(5);
-//        System.out.println(const3.toString());
-//        HugeInteger const4 = new HugeInteger(100);
-//        System.out.println(const4.toString());
-//        System.out.println("</END CONSTRUCTOR TEST>\n");
-
-//        System.out.println("<BEGIN COMPARE TEST/>");
-//        HugeInteger comp1 = new HugeInteger("123");
-//        HugeInteger comp2 = new HugeInteger("123");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("-123");
-//        comp2 = new HugeInteger("123");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("123");
-//        comp2 = new HugeInteger("-123");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("1234");
-//        comp2 = new HugeInteger("123");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("123");
-//        comp2 = new HugeInteger("1234");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("-1234");
-//        comp2 = new HugeInteger("-123");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("-123");
-//        comp2 = new HugeInteger("-1234");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("1234");
-//        comp2 = new HugeInteger("1243");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        comp1 = new HugeInteger("-1234");
-//        comp2 = new HugeInteger("-1243");
-//        System.out.println("input: ("+comp1+").compareTo("+comp2+")\toutput: "+comp1.compareTo(comp2));
-//        System.out.println("</END COMPARE TEST>");
-
-//        System.out.println("<BEGIN ADD TEST/>");
-//        HugeInteger add1 = new HugeInteger("9999");
-//        HugeInteger add2 = new HugeInteger("1");
-//        HugeInteger sum1 = add1.add(add2);
-//        System.out.println(sum1.toString());
-//        add1 = new HugeInteger("-1234");
-//        add2 = new HugeInteger("-4321");
-//        HugeInteger sum2 = add1.add(add2);
-//        System.out.println(sum2.toString());
-//        add1 = new HugeInteger("4294967296");   // 2^32
-//        add2 = new HugeInteger("65536");        // 2^16
-//        HugeInteger sum3 = add1.add(add2);
-//        System.out.println(sum3.toString());
-//        System.out.println("</END ADD TEST>\n");
-        
     }
 }
