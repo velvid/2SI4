@@ -11,19 +11,22 @@ public class HugeInteger {
     /* method for this class only, to initialize empty linked lists */
     private HugeInteger() {
         size = 0;
+        neg = false;
     }
     
     /* method to remove leading zeros when constructing new linked lists */
+    /* this method traverses FROM TAIL TO HEAD, since valid numbers are in form 0 (head) <-> 0 <-> 1 (tail) */
     private void removeLeadingZeros() {
         if(this.size > 1) {    // if size is 1, there is no trailing zeros
-            Node current = this.tail;      // start from most significant digit
-            
-            /* iterate while there are leading 0's, and leave 1 number left*/
-            while(current.value == 0 && current.prev != null) { 
-                current = current.prev; // iterate
-                current.next = null;    // destroy forward link
-                this.size--;    // decrement size by 1
+            /* iterate while there are leading 0's and until head is reached */
+            Node current = this.tail;
+            while(current.value == 0 && current.prev != null) {     // iterate until non-zero value reached
+                current = current.prev;
+                this.size--;    // decrement size
             }
+            /* assign new tail */
+            this.tail = current;
+            this.tail.next = null;  // break the link
         }
     }
     
@@ -98,14 +101,16 @@ public class HugeInteger {
         }
     }
     
-    public HugeInteger add(HugeInteger h) {
-        
+    public HugeInteger add(HugeInteger h) {  
         HugeInteger result = new HugeInteger();
-        
-        if(!this.neg && h.neg) {
+        if(!this.neg && h.neg) {            // this = 1000, h = -100, result = 900
+            h.neg = false;
             result = this.subtract(h);      // special case for subtracion
-        } else if(this.neg && !h.neg) {
+            h.neg = true;
+        } else if(this.neg && !h.neg) {     // this = -1000, h = 100, result = -900
+            this.neg = false;
             result = h.subtract(this);      // special case for subtracion
+            this.neg = true;
         } else {
             
             if(this.neg && h.neg)
@@ -176,75 +181,101 @@ public class HugeInteger {
     }
     
     public HugeInteger subtract(HugeInteger h) {
-        
-        int comparison = this.compareTo(h);
-        if(comparison == 0) return new HugeInteger("0");
+
+        int absComparison = this.compareAbs(h);     // value to determine which is the longer 
+        if(absComparison == 0 && !this.neg && !h.neg) return new HugeInteger("0");
         
         HugeInteger result = new HugeInteger();
-        
-        if(!this.neg && h.neg) {    // this = 1000, h = -100, result = 1100
-            h.neg = false;
+        if(!this.neg && h.neg) {            // this = 1000, h = -100, result = 1100
+            h.neg = false;                  // to avoid flags in add()
             result = this.add(h);
             h.neg = true;
         } else if(this.neg && !h.neg) {     // this = -1000, h = 100, result = -1100
             h.neg = true;
             result = this.add(h);
             h.neg = false;
-        } else if(this.neg && h.neg) {      // this = -1000, h = -100, result = abs(h) - this = 
+        } else if(this.neg && h.neg) {      // this = -1000, h = -100, result = abs(h) - this = -900
+            this.neg = false;               // rearrange negative signs temporarily
             h.neg = false;
-            result = h.subtract(this);
+            result = h.subtract(this);      // h becomes "this", "this" becomes h
+            this.neg = true;
             h.neg = true;
-        } else if(comparison == -1) {       // this = 10, h = 100, result = -(h - this) = -90
-            h.neg = false;
-            result = h.subtract(this);
-            h.neg = true;
-            result.neg = true;
-        } else if(!this.neg && !h.neg) {
+        } else if(absComparison < 0) {
+            result = h.subtract(this);      // A-B = -(B-A), since |B|>|A|
+            result.neg = !result.neg;
+        } else {        // performs A-B, given |A|>|B|
             
-            /* A - B = result, A + C = 1result (there will always be a leading 1) */
-            Node currentA = this.head;
-            Node currentB = h.head;
+            /* if the sizes are 1...just return a node with the subtraction */
+            if(this.size == 1) return new HugeInteger(this.head.value - h.head.value);
             
-            /* initialize the complement and head of it */
-            HugeInteger complement = new HugeInteger();     // to store 10's complement
-            complement.head = new Node(9 - currentB.value);
-            Node currentC = complement.head;
-            Node previous;
-            currentB = currentB.next;
+            /* make a deep copy of A to the result (C) */
+            result.size = this.size;
+            Node currentA = this.head;                  // assign iterator node, A to "this"
+            result.head = new Node(currentA.value);     // copy node from A to result
+            Node currentC = result.head;                // assign C to result
+            Node previous;                              // temporary node to create previous links
+            while(currentA.next.next != null) {
+                currentC.next = new Node(currentA.next.value);  // copy value
+                previous = currentC;        // store previous node
+                currentC = currentC.next;   // iterate to next node
+                currentC.prev = previous;   // assign previous node
+                currentA = currentA.next;   // iterate A
+            }
+            currentC.next = new Node(currentA.next.value);  // the final node, the tail
+            result.tail = currentC.next;
+            result.tail.prev = currentC;
             
+            /* subtracts B from C (C-B), altering C (note: |C|>|B|) */
+            Node currentB = h.head;     // assign iterator node, B to h
+            currentC = result.head;     // reassign head for C
             while(currentB != null) {
-                previous = currentC;
-                currentC.next = new Node(9 - currentB.value);
-                System.out.println("test: " + currentC.value);
-                currentC = currentC.next;
-                currentC.prev = previous;
+                if(currentB.value > currentC.value && currentC.next.value == 0) {
+                    Node tempC = currentC;
+                    while(tempC.next != null && tempC.value == 0)
+                        tempC = tempC.next;
+                    tempC.value--;
+                    while(tempC.prev != currentC) {
+                        tempC = tempC.prev;
+                        tempC.value = 9;
+                    }
+                    currentC.value = 10 + currentC.value - currentB.value;
+                } else if(currentB.value > currentC.value) {
+                    currentC.next.value--;
+                    currentC.value = 10 + currentC.value - currentB.value;
+                } else {
+                    currentC.value = currentC.value - currentB.value;
+                }
                 currentB = currentB.next;
+                currentC = currentC.next;
             }
+        }
+        
+        result.removeLeadingZeros();
+        return result;
+    }
+    
+    public HugeInteger multiply(HugeInteger h) {
+        if((this.size == 1 && this.head.value == 0) 
+                || (h.size == 1 && h.head.value == 0)) return new HugeInteger("0");
+        
+        HugeInteger result = new HugeInteger();
+        if(this.neg == h.neg) 
+            result.neg = false;     // a negative times a negative is a positive
+        else 
+            result.neg = true;      // a negative times a positive is a negative
+        
+        Node currentA = this.head;
+        Node currentB = h.head;
+        Node currentC = result.head;
+        
+        while(currentA != null || currentB != null) {
             
-            Node current;
-            current = complement.head;
-            while(current != null) {
-                System.out.print(current.value);
-                current = current.next;
-            }
-            System.out.println();
-            current = complement.tail;
-            while(current != null) {
-                System.out.print(current.value);
-                current = current.prev;
-            }
-            System.out.println("\n");
-            
-            result = new HugeInteger(10);
-            //result = this.add(complement);
-            result.neg = false;
         }
         
         return result;
     }
     
     public int compareTo(HugeInteger h) {
-        
         /* simple cases if unequal sizes or opposite signs */
         if(this.neg && !h.neg) return -1;   // this = -10, h = 10 => this < h => -1
         if(!this.neg && h.neg) return 1;    // this = 10, h = -10 => this > h => 1
@@ -268,14 +299,30 @@ public class HugeInteger {
         return 0;   // if all cases fail, then that means both are equal
     }
     
+    public int compareAbs(HugeInteger h) {
+        /* simple cases if unequal sizes */
+        if(this.size > h.size) return 1;
+        if(this.size < h.size) return -1;
+        
+        Node currentA = this.tail;
+        Node currentB = h.tail;
+        while(currentA != null || currentB != null) {
+            if(currentA.value > currentB.value) return 1;   // if 
+            if(currentA.value < currentB.value) return -1;  // 
+            currentA = currentA.prev;
+            currentB = currentB.prev;
+        }
+        return 0;   // if all cases fail, then both are equal
+    }
+    
     public String toString() {
         String output = "";
-        Node current = head;
+        Node current = this.head;
         while(current != null) {
             output = String.valueOf(current.value) + output;
             current = current.next;
         }
-        if(neg) output = "-" + output;
+        if(this.neg) output = "-" + output;
         return output;
     }
     
