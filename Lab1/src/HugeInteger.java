@@ -18,9 +18,9 @@ public class HugeInteger {
     /* this method traverses FROM TAIL TO HEAD, since valid numbers are in form 0 (head) <-> 0 <-> 1 (tail) */
     private void removeLeadingZeros() {
         if(this.size > 1) {    // if size is 1, there is no trailing zeros
-            /* iterate while there are leading 0's and until head is reached */
+            /* walk along list while there are leading 0's and until head is reached */
             Node current = this.tail;
-            while(current.value == 0 && current.prev != null) {     // iterate until non-zero value reached
+            while(current.value == 0 && current.prev != null) {     // walk until non-zero value reached
                 current = current.prev;
                 this.size--;    // decrement size
             }
@@ -50,7 +50,6 @@ public class HugeInteger {
                 throw new IllegalArgumentException("Invalid input.");
         head = new Node(tempChar); 
         Node current = head;
-        Node previous;      // pointer to previosu node (for link creation)
         
         /* iterates from end to first digit */
         for(int i=val.length()-2; i>=(neg?1:0); i--) {
@@ -59,13 +58,12 @@ public class HugeInteger {
             if(tempChar < 0 || tempChar > 9)    // if char is NOT an integer
                 throw new IllegalArgumentException("Invalid input.");
 
-            /* iterate through LL and create links */
+            /* walk through LL and create links */
             current.next = new Node(tempChar);
-            previous = current;
+            current.next.prev = current;
             current = current.next;
-            current.prev = previous;
         }
-        tail = current;   
+        tail = current;     // assign tail
         
         /* call method to remove any leading zeros */
         this.removeLeadingZeros();
@@ -86,212 +84,275 @@ public class HugeInteger {
             /* initialize the head */
             head = new Node(random.nextInt(10));
             Node current = head;
-            Node previous;
-
             /* iterates from end to SECOND digit */
             for(int i=1; i<n-1; i++) {
-                current.next = new Node(random.nextInt(10));
-                previous = current;
+                current.next = new Node(random.nextInt(10));    // next link of new node; generate from 0-9
+                current.next.prev = current;                    // assign previous link of new node
                 current = current.next;
-                current.prev = previous;
             }
-            current.next = new Node(random.nextInt(9)+1);   // FIRST DIGIT, from 1-9 (to avoid leading 0)
-            tail = current.next;
+            current.next = new Node(random.nextInt(9)+1);       // first digit, from 1-9 (to avoid leading 0)
+            tail = current.next;    // assign tail
             tail.prev = current;
         }
     }
     
-    public HugeInteger add(HugeInteger h) {  
+    /* returns new list, which is the sum of this and that */
+    public HugeInteger add(HugeInteger that) {  
         HugeInteger result = new HugeInteger();
-        if(!this.neg && h.neg) {            // this = 1000, h = -100, result = 900
-            h.neg = false;
-            result = this.subtract(h);      // special case for subtracion
-            h.neg = true;
-        } else if(this.neg && !h.neg) {     // this = -1000, h = 100, result = -900
-            this.neg = false;
-            result = h.subtract(this);      // special case for subtracion
+        if(!this.neg && that.neg) {             // this = 1000, h = -100, result = 900
+            that.neg = false;                   // change neg to avoid flags in subtract()
+            result = this.subtract(that);       // special case for subtracion
+            that.neg = true;
+        } else if(this.neg && !that.neg) {      // this = -1000, h = 100, result = -900
+            this.neg = false;                   // change neg to avoid flags in subtract()
+            result = that.subtract(this);       // special case for subtracion
             this.neg = true;
         } else {
             
-            if(this.neg && h.neg)
+            if(this.neg && that.neg)
                 result.neg = true;  // if both are positive, result is positive
             else
                 result.neg = false; // if both are negative, result is negative
             
             /* A + B = C */
             Node currentA = this.head;  // iterator node for legiblity
-            Node currentB = h.head;
+            Node currentB = that.head;
             int sum = 0;    // variable to store digit sum
             int carry = 0;  // variable to store digit carry
             
             /* initializes the head */
             sum = currentA.value + currentB.value + carry;  // add the sum
-            carry = sum / 10;   // int division (ex. 12/10 = 1)
-            result.head = new Node(sum % 10);   // mod operation (ex. 12%10 = 2)
-            result.size++;      // increase size of result by 1
+            carry = sum / 10;                               // int division (ex. 12/10 = 1)
+            result.head = new Node(sum % 10);               // mod operation (ex. 12%10 = 2)
+            result.size++;                                  // increase size of result by 1
             
-            Node currentC = result.head;    // iterator node for legibility
-            currentA = currentA.next;       // iterate
-            currentB = currentB.next;       // iterate
-            Node previous;  // pointer to previous node to create prev links
+            Node currentC = result.head;    // nodes for legibility
+            currentA = currentA.next;
+            currentB = currentB.next;
             
             /* adds two numbers to result, A + B = C  */
             while(currentA != null && currentB != null) {       // adds up to length of either A or B
                 sum = currentA.value + currentB.value + carry;
                 carry = sum / 10;
-                currentC.next = new Node(sum % 10);
-                currentA = currentA.next;
+                
+                currentC.next = new Node(sum % 10);     // create next link of new node
+                currentC.next.prev = currentC;          // create previous link of new node
+                result.size++;                          // increment size
+                
+                currentA = currentA.next;   // iterate all linked lists
                 currentB = currentB.next;
-                previous = currentC;
                 currentC = currentC.next;
-                currentC.prev = previous;
-                result.size++;
             }
-            while(currentA != null) {               // adds remainder of A
+            
+            /* add remaining of A to C  */
+            while(currentA != null) {
                 sum = currentA.value + carry;
                 carry = sum / 10;
+                
                 currentC.next = new Node(sum % 10);
-                currentA = currentA.next;
-                previous = currentC;
-                currentC = currentC.next;
-                currentC.prev = previous;
+                currentC.next.prev = currentC;
                 result.size++;
+                
+                currentA = currentA.next;
+                currentC = currentC.next;
             }
-            while(currentB != null) {               // adds remainder of B
+            
+            /* add remaining of B to C */
+            while(currentB != null) {
                 sum = currentB.value + carry;
                 carry = sum / 10;
+                
                 currentC.next = new Node(sum % 10);
+                currentC.next.prev = currentC;
+                result.size++;
+                
                 currentB = currentB.next;
-                previous = currentC;
                 currentC = currentC.next;
-                currentC.prev = previous;
-                result.size++;
             }
-            if(carry > 0) {     // if there's still a carry, add one more node
-                previous = currentC;
+            
+            /* add a carry to the result, it it exists */
+            if(carry > 0) {  
                 currentC.next = new Node(carry);
-                currentC = currentC.next;
-                currentC.prev = previous;
+                currentC.next.prev = currentC;
                 result.size++;
+                
+                currentC = currentC.next;
             }
-            result.tail = currentC;
+            
+            result.tail = currentC;     // create the tail
         }
         
         return result;
     }
     
-    public HugeInteger subtract(HugeInteger h) {
+    /* returns new list, which is difference of this and that (this - that) */
+    public HugeInteger subtract(HugeInteger that) {
 
-        int absComparison = this.compareAbs(h);     // value to determine which is the longer 
-        if(absComparison == 0 && !this.neg && !h.neg) return new HugeInteger("0");
+        int absComparison = this.compareAbs(that);          // value to determine which is larger in magnitude 
+        if(absComparison == 0 && (this.neg == that.neg))    // special case when both are equal in sign and magnitude
+            return new HugeInteger("0");
         
         HugeInteger result = new HugeInteger();
-        if(!this.neg && h.neg) {            // this = 1000, h = -100, result = 1100
-            h.neg = false;                  // to avoid flags in add()
-            result = this.add(h);
-            h.neg = true;
-        } else if(this.neg && !h.neg) {     // this = -1000, h = 100, result = -1100
-            h.neg = true;
-            result = this.add(h);
-            h.neg = false;
-        } else if(this.neg && h.neg) {      // this = -1000, h = -100, result = abs(h) - this = -900
-            this.neg = false;               // rearrange negative signs temporarily
-            h.neg = false;
-            result = h.subtract(this);      // h becomes "this", "this" becomes h
+        if(!this.neg && that.neg) {     // this = 1000, h = -100, result = 1100
+            that.neg = false;           // to avoid flags in add()
+            result = this.add(that);
+            that.neg = true;
+        } else if(this.neg && !that.neg) {      // this = -1000, h = 100, result = -1100
+            that.neg = true;
+            result = this.add(that);
+            that.neg = false;
+        } else if(this.neg && that.neg) {       // this = -1000, h = -100, result = abs(h) - this = -900
+            this.neg = false;                   // rearrange negative signs temporarily
+            that.neg = false;
+            result = that.subtract(this);       // h becomes "this", "this" becomes h
             this.neg = true;
-            h.neg = true;
+            that.neg = true;
         } else if(absComparison < 0) {
-            result = h.subtract(this);      // A-B = -(B-A), since |B|>|A|
+            result = that.subtract(this);       // A-B = -(B-A), since |B|>|A|
             result.neg = !result.neg;
-        } else {        // performs A-B, given |A|>|B|
+        } else {    // performs A-B, given |A|>|B|
             
             /* if the sizes are 1...just return a node with the subtraction */
-            if(this.size == 1) return new HugeInteger(this.head.value - h.head.value);
+            if(this.size == 1) return new HugeInteger(this.head.value - that.head.value);
             
-            /* make a deep copy of A to the result (C) */
+            /* make a deep copy of A to the result, C */
+            /* reason for this is to modify the result without modifying A */
             result.size = this.size;
-            Node currentA = this.head;                  // assign iterator node, A to "this"
-            result.head = new Node(currentA.value);     // copy node from A to result
-            Node currentC = result.head;                // assign C to result
-            Node previous;                              // temporary node to create previous links
+            Node currentA = this.head;                  // assign "this" to node A
+            result.head = new Node(currentA.value);     // copy value of A to result head
+            Node currentC = result.head;                // assign C to result head
             while(currentA.next.next != null) {
                 currentC.next = new Node(currentA.next.value);  // copy value
-                previous = currentC;        // store previous node
-                currentC = currentC.next;   // iterate to next node
-                currentC.prev = previous;   // assign previous node
-                currentA = currentA.next;   // iterate A
+                currentC.next.prev = currentC;                  // assign previous link
+                
+                currentC = currentC.next;
+                currentA = currentA.next;
             }
-            currentC.next = new Node(currentA.next.value);  // the final node, the tail
+            currentC.next = new Node(currentA.next.value);      // the final node, the tail
             result.tail = currentC.next;
             result.tail.prev = currentC;
             
             /* subtracts B from C (C-B), altering C (note: |C|>|B|) */
-            Node currentB = h.head;     // assign iterator node, B to h
+            Node currentB = that.head;  // assign iterator node, B to h
             currentC = result.head;     // reassign head for C
-            while(currentB != null) {
-                if(currentB.value > currentC.value && currentC.next.value == 0) {
-                    Node tempC = currentC;
-                    while(tempC.next != null && tempC.value == 0)
-                        tempC = tempC.next;
-                    tempC.value--;
-                    while(tempC.prev != currentC) {
-                        tempC = tempC.prev;
-                        tempC.value = 9;
+            while(currentB != null) {   // iterate to the end of B, the smaller list
+                if(currentB.value > currentC.value && currentC.next.value == 0) {       // if borrow from a 0
+                    Node tempC = currentC;              // temp node to walk only along 0's
+                    while(tempC.next != null && tempC.value == 0) 
+                        tempC = tempC.next;             // walks until non-zero value reached
+                    tempC.value--;                      // borrow one from the non-zero value
+                    while(tempC.prev != currentC) {     // until you reach the original node...
+                        tempC = tempC.prev;                 // ...walk backwards along list
+                        tempC.value = 9;                    // ...make the 0's into 9's
                     }
-                    currentC.value = 10 + currentC.value - currentB.value;
-                } else if(currentB.value > currentC.value) {
-                    currentC.next.value--;
-                    currentC.value = 10 + currentC.value - currentB.value;
-                } else {
-                    currentC.value = currentC.value - currentB.value;
+                    currentC.value = 10 + currentC.value - currentB.value;  // subtract original node with borrow
+                } else if(currentB.value > currentC.value) {                            // borrow from non-0 value
+                    currentC.next.value--;                                  // borrow one from the next digit
+                    currentC.value = 10 + currentC.value - currentB.value;  // subtract original node with borrow
+                } 
+                else {                                                                  // no borrow needed
+                    currentC.value = currentC.value - currentB.value;       // subtract normally
                 }
-                currentB = currentB.next;
+                currentB = currentB.next;   // walk along list
                 currentC = currentC.next;
             }
         }
         
-        result.removeLeadingZeros();
+        result.removeLeadingZeros();    // remove 0's because C-B yields them
+        
         return result;
     }
     
-    public HugeInteger multiply(HugeInteger h) {
-        if((this.size == 1 && this.head.value == 0) 
-                || (h.size == 1 && h.head.value == 0)) return new HugeInteger("0");
+    /* returns new list, which is product of this and that */
+    public HugeInteger multiply(HugeInteger that) {
         
-        HugeInteger result = new HugeInteger();
-        if(this.neg == h.neg) 
-            result.neg = false;     // a negative times a negative is a positive
-        else 
-            result.neg = true;      // a negative times a positive is a negative
+        if((this.size == 1 && this.head.value == 0)     // if you multiply by 0, return 0
+                || (that.size == 1 && that.head.value == 0)) return new HugeInteger("0");
         
-        Node currentA = this.head;
-        Node currentB = h.head;
-        Node currentC = result.head;
+        HugeInteger result = new HugeInteger("0");      // result to add to
+        HugeInteger toAdd = new HugeInteger();          // new linked list to store (B)*(digit of A)
         
-        while(currentA != null || currentB != null) {
-            
+        /* length of B will be larger or equal to A */
+        Node currentA;
+        Node currentB;
+        if(this.size > that.size) {
+            currentB = this.head;
+            currentA = that.head;
+        } else {
+            currentB = that.head;
+            currentA = this.head;
         }
         
+        /* initialize the head of toAdd list */
+        int value = currentA.value * currentB.value;    // variable for product
+        int carry = value / 10;                         // variable for multiplication carry
+        toAdd.head = new Node(value%10);                // new node with last digit of value, ignoring carry
+        currentB = currentB.next;       // walk along larger list
+        
+        Node currentC = toAdd.head;     // iterator node for result list
+        int numZeros = 0;               // counter for shift 0's for each iteration of toAdd sum
+        
+        while(currentA != null) {
+            
+            if(numZeros > 0) {                      // if there are zeros to add
+                toAdd.head = new Node(0);           // initialize the head
+                currentC = toAdd.head;
+                for(int i=1; i<numZeros; i++) {     // shift remaining zeros
+                    currentC.next = new Node(0);
+                    currentC.next.prev = currentC;
+                    currentC = currentC.next;
+                }
+            }
+            
+            /* walk along larger list, B */
+            while(currentB != null) {
+                value = currentA.value * currentB.value + carry;    // value to store product of digits + prior carry
+                carry = value / 10;                                 // carry of new product
+                
+                currentC.next = new Node(value % 10);   // create next link with new value
+                currentC.next.prev = currentC;          // create prev link of new node
+                    
+                currentC = currentC.next;   // walk along lists
+                currentB = currentB.next;
+            }
+            
+            /* add remaining carry to linked list */
+            if(carry > 0) {
+                currentC.next = new Node(carry);
+                currentC.next.prev = currentC;
+                carry = 0;
+            }
+            
+            currentB = this.size > that.size ? this.head : that.head;   // reset B to original head
+            currentA = currentA.next;                                   // walk along A
+            numZeros++;                                 // increment amount of 0's to shift
+            
+            result = result.add(toAdd);                 // add toAdd to result
+        }
+        
+        result.neg = this.neg != that.neg;              // result is negative if operands are EXCLUSIVELY OR negative
+
         return result;
     }
     
-    public int compareTo(HugeInteger h) {
+    /* returns 1 if this > that, returns -1 if this < that, returns 0 if this == that */
+    public int compareTo(HugeInteger that) {
         /* simple cases if unequal sizes or opposite signs */
-        if(this.neg && !h.neg) return -1;   // this = -10, h = 10 => this < h => -1
-        if(!this.neg && h.neg) return 1;    // this = 10, h = -10 => this > h => 1
-        if(this.neg && h.neg && this.size > h.size) return -1;  // this = -100, h = -10 => this < h => -1
-        if(this.neg && h.neg && this.size < h.size) return 1;   // this = -10, h = -100 => this > h => 1
-        if(!this.neg && !h.neg && this.size > h.size) return 1;     // this = 100, h = 10 => this > h => 1
-        if(!this.neg && !h.neg && this.size < h.size) return -1;    // this = 10, h = 100 => this < h => -1
+        if(this.neg && !that.neg) return -1;                                    // this = -10, that = 10 => this < that => -1
+        if(!this.neg && that.neg) return 1;                                     // this = 10, that = -10 => this > that => 1
+        if(this.neg && that.neg && this.size > that.size) return -1;            // this = -100, that = -10 => this < that => -1
+        if(this.neg && that.neg && this.size < that.size) return 1;             // this = -10, that = -100 => this > that => 1
+        if(!this.neg && !that.neg && this.size > that.size) return 1;           // this = 100, that = 10 => this > that => 1
+        if(!this.neg && !that.neg && this.size < that.size) return -1;          // this = 10, that = 100 => this < that => -1
         
         /* block executes only if same sign and both are equal size */
         Node currentA = this.tail;
-        Node currentB = h.tail;
+        Node currentB = that.tail;
         while(currentA != null || currentB != null) {
-            if(currentA.value > currentB.value && !this.neg && !h.neg) return 1;    // this = 110, h = 100 => this > h => 1
-            if(currentA.value < currentB.value && !this.neg && !h.neg) return -1;   // this = 100, h = 110 => this < h => -1
-            if(currentA.value > currentB.value && this.neg && h.neg) return -1;     // this = -110, h = -100 => this < h => -1
-            if(currentA.value < currentB.value && this.neg && h.neg) return 1;      // this = -100, h = -110 => this > h => 1
+            if(currentA.value > currentB.value && !this.neg && !that.neg) return 1;    // this = 110, that = 100 => this > that => 1
+            if(currentA.value < currentB.value && !this.neg && !that.neg) return -1;   // this = 100, that = 110 => this < that => -1
+            if(currentA.value > currentB.value && this.neg && that.neg) return -1;     // this = -110, that = -100 => this < that => -1
+            if(currentA.value < currentB.value && this.neg && that.neg) return 1;      // this = -100, that = -110 => this > that => 1
             currentA = currentA.prev;
             currentB = currentB.prev;
         }
@@ -299,22 +360,25 @@ public class HugeInteger {
         return 0;   // if all cases fail, then that means both are equal
     }
     
-    public int compareAbs(HugeInteger h) {
+    /* returns 1 if |this| > |that|, returns -1 if |this| < |that|, returns 0 if |this| == |that| */
+    public int compareAbs(HugeInteger that) {
         /* simple cases if unequal sizes */
-        if(this.size > h.size) return 1;
-        if(this.size < h.size) return -1;
+        if(this.size > that.size) return 1;
+        if(this.size < that.size) return -1;
         
+        /* block only executes if both are equal size */
         Node currentA = this.tail;
-        Node currentB = h.tail;
+        Node currentB = that.tail;
         while(currentA != null || currentB != null) {
-            if(currentA.value > currentB.value) return 1;   // if 
-            if(currentA.value < currentB.value) return -1;  // 
+            if(currentA.value > currentB.value) return 1;
+            if(currentA.value < currentB.value) return -1;
             currentA = currentA.prev;
             currentB = currentB.prev;
         }
         return 0;   // if all cases fail, then both are equal
     }
     
+    /* converts HugeInteger to a string */
     public String toString() {
         String output = "";
         Node current = this.head;

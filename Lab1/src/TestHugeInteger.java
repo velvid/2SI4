@@ -3,7 +3,8 @@ public class TestHugeInteger {
     public static void main(String[] args) {
 
         System.out.println("<BEGIN LINKED LIST ITERATION TEST/>");
-        HugeInteger test = new HugeInteger("123000");
+        HugeInteger test = (new HugeInteger("5")).multiply(new HugeInteger("-900")).subtract(new HugeInteger("-1245"));
+        System.out.format("toString(): %s\tsize: %d\n", test.toString(), test.size);
         Node current;
         System.out.print("head -> tail:\t");
         current = test.head;
@@ -29,7 +30,7 @@ public class TestHugeInteger {
             "0",
             "123R123",
             "ZXDF3SF",
-            "",};
+            ""};
         for(String operand:inputConst1) {
             try {
                 System.out.println("\tHugeInteger('"+operand+"')\toutput: "+(new HugeInteger(operand)).toString());
@@ -88,8 +89,9 @@ public class TestHugeInteger {
             {"6666", "3334"}};
         for(String[] operand:inputAdd) {
             try {
-                String output = ((new HugeInteger(operand[0])).add(new HugeInteger(operand[1]))).toString();
-                System.out.format("\t(%s).add(%s)\toutput: %s\n",operand[0],operand[1],output);
+                HugeInteger output = ((new HugeInteger(operand[0])).add(new HugeInteger(operand[1])));
+                System.out.format("\t(%s).add(%s)\toutput: %s\tsize: %d\n",
+                        operand[0],operand[1],output.toString(),output.size);
             } catch(IllegalArgumentException e) {
                 System.out.println(e + "\n  operand[0]: "+operand[0]+"\toperand[1]: "+operand[1]);
             }
@@ -98,10 +100,12 @@ public class TestHugeInteger {
         
         System.out.println("<BEGIN SUBTRACTION TEST/>");
         String[][] inputSubtract = {
-            {"1000", "1000"},
+            {"1024", "1024"},
+            {"-1024", "-1024"},
             {"-1234", "1000"},
             {"1000", "1"},
             {"1", "1000"},
+            {"0", "0"},
             {"1a00", "991"},
             {"-1000", "-100"},
             {"100", "1000"},
@@ -109,8 +113,9 @@ public class TestHugeInteger {
             {"6666", "9999"}};
         for(String[] operand:inputSubtract) {
             try {
-                String output = ((new HugeInteger(operand[0])).subtract(new HugeInteger(operand[1]))).toString();
-                System.out.format("\t(%s).subtract(%s)\toutput: %s\n",operand[0],operand[1],output);
+                HugeInteger output = ((new HugeInteger(operand[0])).subtract(new HugeInteger(operand[1])));
+                System.out.format("\t(%s).subtract(%s)\toutput: %s\tsize: %d\n",
+                        operand[0],operand[1],output.toString(),output.size);
             } catch(IllegalArgumentException e) {
                 System.out.println(e + "\n  operand[0]: "+operand[0]+"\toperand[1]: "+operand[1]);
             }
@@ -121,18 +126,26 @@ public class TestHugeInteger {
         String[][] inputMultiply = {
             {"0", "9999"},
             {"1234", "0"},
-            //{"1", "2525"},
-            //{"1234", "1234"},
-        };
+            {"1", "2"},
+            {"5", "1"},
+            {"1234", "8"},
+            {"8", "1234"},
+            {"999", "99"},
+            {"999", "999"},
+            {"999", "-999"},
+            {"-999", "999"},
+            {"-999", "-999"},
+            {"13243546576879", "123456789123456789"}};
         for(String[] operand:inputMultiply) {
             try {
-                String output = ((new HugeInteger(operand[0])).multiply(new HugeInteger(operand[1]))).toString();
-                System.out.println("\t("+operand[0]+").multiply("+operand[1]+")\toutput: "+output);
+                HugeInteger output = ((new HugeInteger(operand[0])).multiply(new HugeInteger(operand[1])));
+                System.out.format("\t(%s).multiply(%s)\toutput: %s\tsize: %d\n",
+                        operand[0],operand[1],output.toString(),output.size);
             } catch(IllegalArgumentException e) {
                 System.out.println(e + "\n  operand[0]: "+operand[0]+"\toperand[1]: "+operand[1]);
             }
         }
         System.out.println("</END MULTIPLICATION TEST>\n\n");
-        
+
     }
 }
