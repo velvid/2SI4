@@ -187,7 +187,14 @@ public class BSTSet {
     public int size() { return size; }
     
     public int height() { 
-        return 0;
+        return recursiveHeight(root);
+    }
+    
+    private int recursiveHeight(BSTNode node) {
+        if(node == null) return 0;
+        int left = recursiveHeight(node.left);
+        int right = recursiveHeight(node.right);
+        return 1 + (left > right ? left : right);
     }
     
     public void printBSTSet() {
