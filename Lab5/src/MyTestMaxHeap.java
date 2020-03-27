@@ -23,15 +23,6 @@ public class MyTestMaxHeap {
                     ,test.getCapacity());
         } System.out.println("</INSERT TEST>\n");
         
-        System.out.println("<DELETE MAX TEST/>");
-        for(int i=test.getSize(); i>0; i--) {
-            test.deleteMax();
-            System.out.format(".deleteMax():\t%s\n", test);
-            System.out.format("size, capacity:\t%d, %d\n"
-                    ,test.getSize()
-                    ,test.getCapacity());
-        } System.out.println("</DELETE MAX TEST>\n");
-        
         System.out.println("<CONSTRUCTOR 1 TEST/>");
         for(Integer num : nums2) {
             try {
@@ -70,7 +61,7 @@ public class MyTestMaxHeap {
             Integer[] sort = arr.clone();
             String before = "";
             for(Integer num:sort) before += num + " ";
-            MaxHeap.heapSort(sort);
+            MaxHeap.heapsort(sort);
             String after = "";
             for(Integer num:sort) after += num + " ";
             System.out.format("before sorting:\t %s\n", before);
